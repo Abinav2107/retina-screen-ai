@@ -537,7 +537,7 @@ custom_css = """
 .dataframe td { padding: 8px 10px; }
 """
 
-with gr.Blocks(title="NetraScreen - Clinical Screening Dashboard") as demo:
+with gr.Blocks(title="NetraScreen - Clinical Screening Dashboard", css=custom_css) as demo:
 
     gr.Markdown("# 🔬 NetraScreen — Diabetic Retinopathy Clinical Dashboard & Screening Unit")
     gr.Markdown(
@@ -983,6 +983,4 @@ if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        share=False,
-        css=custom_css,
     )
