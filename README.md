@@ -12,11 +12,17 @@ license: mit
 
 # 🔬 NetraScreen — AI Diabetic Retinopathy Screening Assistant & Clinical Registry
 
-> **An edge-ready, offline AI tele-ophthalmology screening platform that grades diabetic retinopathy from retinal fundus photographs, highlights lesions via Grad-CAM, delivers 6-language patient advisory, issues scannable EHR referral slips, and manages epidemiological camp screening registries.**
+> 🌐 **Official Live Demo (24/7 Permanent Cloud App):** [**https://retina-screen-ai.streamlit.app/**](https://retina-screen-ai.streamlit.app/)  
+> 📊 **HackDay 1.0 Pitch Deck:** [`NetraScreen_HackDay_Presentation.pptx`](NetraScreen_HackDay_Presentation.pptx)  
+> 📄 **Hackathon Review & Architecture PDF:** [`NetraScreen_Hackathon_Final_Review.pdf`](NetraScreen_Hackathon_Final_Review.pdf)  
+> 
+> *An edge-ready, tele-ophthalmology screening platform that grades diabetic retinopathy from retinal fundus photographs, highlights lesions via Grad-CAM, delivers 6-language patient advisory, issues scannable EHR referral slips, and manages epidemiological camp screening registries.*
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://retina-screen-ai.streamlit.app/)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![TensorFlow 2.x](https://img.shields.io/badge/TensorFlow-2.21-FF6F00.svg?logo=tensorflow&logoColor=white)](https://tensorflow.org)
-[![Keras 3.x](https://img.shields.io/badge/Keras-3.15-D00000.svg?logo=keras&logoColor=white)](https://keras.io)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00.svg?logo=tensorflow&logoColor=white)](https://tensorflow.org)
+[![Keras 3.x](https://img.shields.io/badge/Keras-3.x-D00000.svg?logo=keras&logoColor=white)](https://keras.io)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.40+-FF4B4B.svg?logo=streamlit&logoColor=white)](https://retina-screen-ai.streamlit.app/)
 [![Gradio 6.x](https://img.shields.io/badge/Gradio-6.28-orange.svg?logo=gradio&logoColor=white)](https://gradio.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Offline Ready](https://img.shields.io/badge/Offline-100%25%20Edge%20Ready-success.svg)]()
@@ -107,14 +113,17 @@ pip install -r requirements.txt
 
 ### 5. Run the Application
 ```bash
-# Run web interface
+# Option A: Run Streamlit Web Application (Cloud & Local)
+streamlit run streamlit_app.py
+
+# Option B: Run Gradio Edge Interface
 python app.py
 
 # Or on Windows, double-click:
 run_app.bat
 ```
-Open your browser and navigate to:
-👉 **`http://localhost:7860`** (or `http://127.0.0.1:7860`)
+Live 24/7 Cloud Deployment:
+👉 **[https://retina-screen-ai.streamlit.app/](https://retina-screen-ai.streamlit.app/)**
 
 ---
 
@@ -148,6 +157,7 @@ python generate_pdf_report.py NetraScreen_Hackathon_Final_Review.pdf
 
 ```text
 dr_screening/
+├── streamlit_app.py                # 24/7 Cloud Streamlit web application
 ├── app.py                          # Gradio web application with 3 modular tabs
 ├── predict.py                      # Preprocessing & EfficientNetB0 inference
 ├── gradcam.py                      # Grad-CAM calculation & <1ms cached opacity blending
@@ -156,6 +166,8 @@ dr_screening/
 ├── database.py                     # SQLite database, KPI calculations & Matplotlib charts
 ├── referral_slip.py                # Prescription card generator with EHR QR code
 ├── batch.py                        # Camp mode multi-file batch screening pipeline
+├── NetraScreen_HackDay_Presentation.pptx # Official HackDay 1.0 Presentation Deck
+├── NetraScreen_Hackathon_Final_Review.pdf # Comprehensive A-to-Z review & defense PDF
 ├── generate_pdf_report.py          # ReportLab script generating documentation PDF
 ├── download_real_clinical_data.py  # Downloader for genuine clinical fundus images
 ├── run_app.bat                     # Windows 1-click batch launcher
