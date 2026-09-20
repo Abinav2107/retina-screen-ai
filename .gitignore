@@ -1,0 +1,61 @@
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment & Secrets
+.env
+.env.*
+*.env
+
+# Cache directories
+.cache/
+.gradio/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Model weights & large cached artifacts
+*.h5
+*.keras
+*.ckpt
+*.pt
+*.pth
+*.onnx
+models--*
+hub/
+
+# Generated runtime audio & media
+audio/*.mp3
+audio/*.wav
+*.mp3
+*.wav
+
+# Runtime database & log files
+*.db
+*.sqlite
+*.sqlite3
+*.log
+app_stdout.log
+app_stderr.log
+
+# Generated patient referral slips & test outputs (runtime artifacts)
+referral_slip_*.png
+patient_referral_slip.png
+test_*.png
+test_*.csv
+batch_screening_report.csv
+clinical_camp_report.csv
+clinic_patient_registry.csv
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini

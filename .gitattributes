@@ -1,0 +1,6 @@
+# Force git to treat images and PDFs as binary to prevent line-ending corruption
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
