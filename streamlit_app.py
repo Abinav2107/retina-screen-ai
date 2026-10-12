@@ -96,12 +96,12 @@ if "lang" not in st.session_state:  # --- i18n ---
 # Sidebar Configuration
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown(f"### {t('sidebar_title')}")  # --- i18n ---
+    st.markdown(t("sidebar_title"))  # --- i18n ---
     st.caption(t("sidebar_caption"))  # --- i18n ---
     st.divider()
 
     # Regional Language Selector (Global Full-UI Switcher)
-    st.markdown(f"#### 🌐 {t('sidebar_lang_heading')}")  # --- i18n ---
+    st.markdown(t("sidebar_lang_heading"))  # --- i18n ---
     curr_lang = st.session_state.get("lang", "en")  # --- i18n ---
     curr_lang_name = i18n.CODE_TO_LANGUAGE_MAP.get(curr_lang, "English")  # --- i18n ---
     try:  # --- i18n ---
@@ -128,7 +128,7 @@ with st.sidebar:
     st.divider()
 
     # HackDay Presentation & PDF Downloads
-    st.markdown(f"#### 📁 {t('sidebar_deliverables_heading')}")  # --- i18n ---
+    st.markdown(t("sidebar_deliverables_heading"))  # --- i18n ---
     pptx_path = Path("NetraScreen_HackDay_Presentation.pptx")
     if pptx_path.exists():
         with open(pptx_path, "rb") as f:
@@ -160,7 +160,7 @@ with st.sidebar:
 
     # --- L&T UPGRADE: Adaptive Clinical Controls & Privacy ---
     st.divider()
-    st.markdown(f"#### ⚙️ {t('sidebar_adaptive_heading')}")  # --- i18n ---
+    st.markdown(t("sidebar_adaptive_heading"))  # --- i18n ---
     support_style = st.selectbox(
         t("lbl_support_style"),  # --- i18n ---
         options=["Detailed", "Concise"],
@@ -183,7 +183,7 @@ with st.sidebar:
     )
 
     st.divider()
-    st.markdown(f"#### 🤖 {t('sidebar_genai_heading')}")  # --- i18n ---
+    st.markdown(t("sidebar_genai_heading"))  # --- i18n ---
     if sarvam_client.is_sarvam_online():
         st.success(t("badge_sarvam_online"))  # --- i18n ---
     else:
@@ -662,7 +662,7 @@ with tab_screen:
         if "doctor_decision" not in st.session_state or st.session_state.doctor_decision is None:
             rev_c1, rev_c2, rev_c3 = st.columns(3)
             with rev_c1:
-                st.markdown(f"#### {t('col_accept_heading')}")  # --- i18n ---
+                st.markdown(t("col_accept_heading"))  # --- i18n ---
                 accept_reason = st.text_input(t("lbl_accept_notes"), placeholder=t("ph_accept_notes"), key="acc_notes")  # --- i18n ---
                 if st.button(t("btn_accept_staging"), use_container_width=True, type="primary", key="btn_accept_act"):  # --- i18n ---
                     audit_id = review.record_clinician_decision(
@@ -687,7 +687,7 @@ with tab_screen:
                     st.rerun()
 
             with rev_c2:
-                st.markdown(f"#### {t('col_correct_heading')}")  # --- i18n ---
+                st.markdown(t("col_correct_heading"))  # --- i18n ---
                 corr_grade = st.selectbox(
                     t("lbl_corrected_grade"),  # --- i18n ---
                     options=[0, 1, 2, 3, 4],
@@ -722,7 +722,7 @@ with tab_screen:
                         st.rerun()
 
             with rev_c3:
-                st.markdown(f"#### {t('col_reject_heading')}")  # --- i18n ---
+                st.markdown(t("col_reject_heading"))  # --- i18n ---
                 rej_reason = st.text_input(t("lbl_reject_notes"), placeholder=t("ph_reject_notes"), key="rej_notes")  # --- i18n ---
                 if st.button(t("btn_reject_scan"), use_container_width=True, key="btn_reject_act"):  # --- i18n ---
                     if not rej_reason.strip():
