@@ -590,7 +590,7 @@ with tab_screen:
 
         # --- L&T UPGRADE: Adaptive Clinical Support Report ---
         current_mode_label = t("opt_style_detailed") if support_style == "Detailed" else t("opt_style_concise")
-        st.subheader(f"📋 {t('adaptive_heading', mode=current_mode_label)}")  # --- i18n ---
+        st.subheader(t("adaptive_heading", support_style=current_mode_label, mode=current_mode_label))  # --- i18n ---
         adapt_report = adaptive.format_adaptive_report(
             grade=g,
             label=res["pred_label"],
@@ -599,11 +599,11 @@ with tab_screen:
             support_mode=support_style,
             show_evidence=show_evidence,
         )
-        st.markdown(adapt_report["markdown"])
+        st.markdown(adapt_report.get("html", adapt_report.get("markdown", "")), unsafe_allow_html=True)  # --- i18n ---
         # --- END L&T UPGRADE ---
 
         # --- L&T UPGRADE: Sarvam GenAI Layer & Doctor Q&A ---
-        st.subheader(f"🤖 {t('genai_heading')}")  # --- i18n ---
+        st.subheader(t("genai_heading"))  # --- i18n ---
         sarvam_res = sarvam_client.generate_sarvam_explanation(
             grade=g,
             label=res["pred_label"],
@@ -622,7 +622,7 @@ with tab_screen:
         </div>
         """, unsafe_allow_html=True)
 
-        with st.expander(f"💬 {t('expander_doctor_qa')}"):  # --- i18n ---
+        with st.expander(t("expander_doctor_qa")):  # --- i18n ---
             doc_q_input = st.text_input(t("lbl_doctor_query"), placeholder=t("ph_doctor_query"), key="doc_q_text")  # --- i18n ---
             if st.button(t("btn_submit_query"), key="submit_doc_q_btn"):  # --- i18n ---
                 if doc_q_input.strip():
@@ -643,7 +643,7 @@ with tab_screen:
 
         # Grad-CAM Opacity & Visual Explainability
         if show_evidence:
-            st.subheader(f"🔍 {t('gradcam_section_heading')}")  # --- i18n ---
+            st.subheader(t("gradcam_section_heading"))  # --- i18n ---
             opacity_val = st.slider(t("lbl_heatmap_opacity"), min_value=0, max_value=100, value=45, step=5, key="evidence_slider")  # --- i18n ---
             gradcam_live = blend_gradcam_overlay(res["img_224"], res["heatmap_rgb"], opacity_percent=opacity_val)
 
@@ -655,7 +655,7 @@ with tab_screen:
 
             st.caption(f"**{t('lesion_explanation_lbl')}:** {get_caption(g)}")  # --- i18n ---
         else:
-            with st.expander(f"🔍 {t('expander_hidden_evidence')}"):  # --- i18n ---
+            with st.expander(t("expander_hidden_evidence")):  # --- i18n ---
                 opacity_val = st.slider(t("lbl_heatmap_opacity"), min_value=0, max_value=100, value=45, step=5, key="hidden_slider")  # --- i18n ---
                 gradcam_live = blend_gradcam_overlay(res["img_224"], res["heatmap_rgb"], opacity_percent=opacity_val)
                 st.image(gradcam_live, caption=f"Grad-CAM Heatmap ({opacity_val}%)", width=350)
@@ -663,7 +663,7 @@ with tab_screen:
         st.divider()
 
         # --- L&T UPGRADE: Doctor-in-the-Loop Review Controls ---
-        st.subheader(f"👨‍⚕️ {t('review_heading')}")  # --- i18n ---
+        st.subheader(t("review_heading"))  # --- i18n ---
         st.markdown(t("review_instruction"))  # --- i18n ---
 
         if "doctor_decision" not in st.session_state or st.session_state.doctor_decision is None:
@@ -784,7 +784,7 @@ with tab_screen:
         st.divider()
 
         # Official Printable Referral Slip & QR Code
-        st.subheader(f"📄 {t('slip_section_heading')}")  # --- i18n ---
+        st.subheader(t("slip_section_heading"))  # --- i18n ---
         st.markdown(t("slip_section_desc"))  # --- i18n ---
 
         slip_col1, slip_col2 = st.columns([3, 1])
@@ -811,7 +811,7 @@ with tab_screen:
 # TAB 3: CAMP MODE (BATCH SCREENING)
 # =============================================================================
 with tab_camp:
-    st.subheader(f"🏕️ {t('camp_heading')}")  # --- i18n ---
+    st.subheader(t("camp_heading"))  # --- i18n ---
     st.markdown(t("camp_description"))  # --- i18n ---
 
     batch_files = st.file_uploader(
@@ -864,7 +864,7 @@ with tab_camp:
 # TAB 4: AUDIT & REVIEW TRAIL (--- L&T UPGRADE ---)
 # =============================================================================
 with tab_audit:
-    st.subheader(f"📜 {t('audit_heading')}")  # --- i18n ---
+    st.subheader(t("audit_heading"))  # --- i18n ---
     st.markdown(t("audit_description"))  # --- i18n ---
 
     audit_summary = audit.get_audit_summary()
@@ -951,7 +951,7 @@ with tab_audit:
 # TAB 5: DOCTOR + AI EVALUATION (--- L&T UPGRADE ---)
 # =============================================================================
 with tab_eval:
-    st.subheader(f"📈 {t('eval_heading')}")  # --- i18n ---
+    st.subheader(t("eval_heading"))  # --- i18n ---
     st.info(t("eval_academic_notice"))  # --- i18n ---
 
     if st.button(t("btn_run_simulation"), type="primary", key="btn_run_simulation_act"):  # --- i18n ---
@@ -972,7 +972,7 @@ with tab_eval:
     st.pyplot(fig_sim)
 
     st.divider()
-    st.markdown(f"#### ⚖️ {t('fairness_heading')}")  # --- i18n ---
+    st.markdown(f"#### {t('fairness_heading')}")  # --- i18n ---
     st.caption(t("fairness_caption"))  # --- i18n ---
 
     demo_cohort = [

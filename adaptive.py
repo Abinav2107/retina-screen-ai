@@ -81,6 +81,7 @@ def format_adaptive_report(
         return {
             "mode": "Concise",
             "html": html_content,
+            "markdown": html_content,
             "timeline": action_timeline,
             "evidence_displayed": show_evidence,
         }
@@ -124,6 +125,7 @@ def format_adaptive_report(
     return {
         "mode": "Detailed",
         "html": html_content,
+        "markdown": html_content,
         "timeline": action_timeline,
         "evidence_displayed": show_evidence,
     }
