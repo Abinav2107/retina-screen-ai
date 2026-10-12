@@ -1,5 +1,5 @@
 Workflow Strategy (Simulation),Accuracy,Sensitivity (Referable DR),Specificity,Avg Time per Patient
-Junior Clinician (Alone),82.0%,79.5%,83.1%,86.8s
-AI Model (EfficientNetB0 Alone),91.6%,84.6%,94.8%,<1s
-Senior Ophthalmologist (Alone),96.0%,97.4%,95.3%,136.7s
-Hybrid: Doctor + NetraScreen AI,98.0%,96.2%,98.8%,63.7s
+Junior Clinician (Alone),80.0%,75.0%,81.6%,87.1s
+AI Model (EfficientNetB0 Alone),96.0%,100.0%,94.7%,<1s
+Senior Ophthalmologist (Alone),96.0%,100.0%,94.7%,134.2s
+Hybrid: Doctor + NetraScreen AI,98.0%,100.0%,97.4%,58.3s

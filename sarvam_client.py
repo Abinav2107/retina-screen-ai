@@ -13,8 +13,11 @@ SARVAM_CHAT_URL = "https://api.sarvam.ai/v1/chat/completions"
 SARVAM_TTS_URL = "https://api.sarvam.ai/text-to-speech"
 
 
+DEFAULT_SARVAM_API_KEY = "sk_tqja8mou_myoarWUcyyZzP0RNj8iz6FYN"
+
+
 def get_sarvam_api_key() -> Optional[str]:
-    """Retrieves Sarvam API key safely from environment, Streamlit secrets, or local .env file."""
+    """Retrieves Sarvam API key safely from environment, Streamlit secrets, or local .env file, with active fallback."""
     key = os.environ.get("SARVAM_API_KEY", "").strip()
     if not key:
         try:
@@ -31,6 +34,8 @@ def get_sarvam_api_key() -> Optional[str]:
                     if line.strip().startswith("SARVAM_API_KEY="):
                         key = line.split("=", 1)[1].strip().strip('"').strip("'")
                         break
+    if not key:
+        key = DEFAULT_SARVAM_API_KEY
     return key if key else None
 
 
@@ -64,6 +69,16 @@ def generate_sarvam_explanation(
             "badge_color": "#64748b",
         }
 
+    LANG_NAMES = {
+        "en": "English",
+        "hi": "Hindi (हिंदी)",
+        "bn": "Bengali (বাংলা)",
+        "mr": "Marathi (मराठी)",
+        "te": "Telugu (తెలుగు)",
+        "ta": "Tamil (தமிழ்)",
+    }
+    target_lang_name = LANG_NAMES.get(language_code, "English")
+
     # 2. Strict System Prompt enforcing medical safety and guardrails
     system_prompt = (
         "You are an AI Clinical Decision Support Explainer for Diabetic Retinopathy. "
@@ -72,7 +87,7 @@ def generate_sarvam_explanation(
         "2. You may ONLY explain the provided grade, probabilities, Grad-CAM focus, and clinical timeline.\n"
         "3. Emphasize that you are a decision-support aid and the clinician makes the final decision.\n"
         "4. Always mention the limits of the result and uncertainty where present.\n"
-        f"5. Respond empathetically and clearly in the target language (Language code: {language_code})."
+        f"5. Respond empathetically, fluently, and clearly in {target_lang_name} (Language code: {language_code}). Write directly in {target_lang_name} script."
     )
 
     user_payload = {
@@ -104,7 +119,7 @@ def generate_sarvam_explanation(
     }
 
     try:
-        resp = requests.post(SARVAM_CHAT_URL, headers=headers, json=body, timeout=12)
+        resp = requests.post(SARVAM_CHAT_URL, headers=headers, json=body, timeout=20)
         if resp.status_code == 200:
             data = resp.json()
             message_obj = data.get("choices", [{}])[0].get("message", {})

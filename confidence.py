@@ -79,6 +79,7 @@ def compute_uncertainty_metrics(
         "top1_class": class_labels[top1_idx],
         "top2_class": class_labels[top2_idx],
         "margin": round(margin, 4),
+        "top2_margin": round(margin, 4),
         "entropy": round(normalized_entropy, 3),
         "confidence_status": confidence_status,
         "is_uncertain": uncertain,

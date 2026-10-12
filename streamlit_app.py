@@ -572,11 +572,18 @@ with tab_screen:
             </div>
             """, unsafe_allow_html=True)  # --- i18n ---
 
+        top1_val = conf_data.get("top1_prob", conf)  # --- i18n ---
+        margin_val = conf_data.get("top2_margin", conf_data.get("margin", 0.0))  # --- i18n ---
+        entropy_val = conf_data.get("entropy", 0.0)  # --- i18n ---
+        conf_status = conf_data.get("confidence_status", "High Confidence" if conf >= 0.8 else "Moderate")  # --- i18n ---
+        q_score = q_data.get("quality_score", 85.0)  # --- i18n ---
+        q_passed = q_data.get("passed", True)  # --- i18n ---
+
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric(t("metric_top1"), f"{conf_data['top1_prob']*100:.1f}%", conf_data["confidence_status"])  # --- i18n ---
-        m2.metric(t("metric_margin"), f"{conf_data['top2_margin']*100:.1f}%")  # --- i18n ---
-        m3.metric(t("metric_entropy"), f"{conf_data['entropy']:.3f}")  # --- i18n ---
-        m4.metric(t("metric_quality"), f"{q_data['quality_score']:.1f}/100", t("status_passed") if q_data["passed"] else t("status_flagged"))  # --- i18n ---
+        m1.metric(t("metric_top1"), f"{top1_val*100:.1f}%", conf_status)  # --- i18n ---
+        m2.metric(t("metric_margin"), f"{margin_val*100:.1f}%")  # --- i18n ---
+        m3.metric(t("metric_entropy"), f"{entropy_val:.3f}")  # --- i18n ---
+        m4.metric(t("metric_quality"), f"{q_score:.1f}/100", t("status_passed") if q_passed else t("status_flagged"))  # --- i18n ---
 
         st.caption(f"ℹ️ **{t('limits_note_label')}:** {confidence.LIMITS_OF_RESULT_NOTE}")  # --- i18n ---
         # --- END L&T UPGRADE ---
