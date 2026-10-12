@@ -186,10 +186,98 @@ dr_screening/
 
 ---
 
+---
+
+## 🏆 L&T TECHNUM Challenge Upgrade: Adaptive Medical Scan Analysis (ML + DL + GenAI)
+
+NetraScreen AI has been upgraded for the **L&T TECHNUM Challenge: "Adaptive Medical Scan Analysis and Recommendation System (ML + DL + GenAI)"**. The system operates strictly as a **Clinical Decision-Support (CDS)** platform where the attending physician holds final diagnostic authority.
+
+### 🌟 Upgraded Capabilities Overview
+
+1. **Pre-Inference Image Quality Gate (`quality.py`)**:
+   - Uses OpenCV to inspect optical blur (variance of Laplacian), exposure (luminance thresholds), contrast (Michelson green-channel ratio), and retinal field-of-view (illuminated circular mask).
+   - If a scan fails, classification is suppressed and the doctor is shown specific recapture guidance with an explicit *"Proceed anyway (flagged for review)"* override.
+2. **Confidence Quantification & Uncertainty Engine (`confidence.py`)**:
+   - Computes Top-1 probability, Top-2 probability margin, and normalized Shannon entropy ($H \in [0, 1]$).
+   - Flags borderline ambiguities as *"Uncertain: specialist review recommended"* and displays explicit clinical bounds (`LIMITS_OF_RESULT_NOTE`).
+3. **Adaptive Clinical Support Modes (`adaptive.py`)**:
+   - Clinician-selectable **Detailed** (pathological microvascular lesions, differential context, next steps) vs. **Concise** (metrics, urgency, intervention window).
+   - Urgency-adaptive layout: Grade 3-4 severe cases highlight the action window first.
+4. **GenAI Clinical Explanation Layer (`sarvam_client.py`)**:
+   - Powered by **Sarvam AI** with strict medical prompts preventing hallucinated lesions.
+   - Interactive doctor Q&A box (*"Ask a question about this result"*).
+   - **100% Offline Fallback**: If `SARVAM_API_KEY` or internet is absent, the system seamlessly serves preloaded regional clinical templates with an *"AI explanation: offline"* status badge.
+5. **Doctor-in-the-Loop Review Controls (`review.py`)**:
+   - Authoritative clinician actions: **Accept**, **Correct** (stipulate grade 0-4 + required clinical rationale), and **Reject** (required reason). Decisions are immutably logged without overwriting historical records.
+6. **Compliance Audit Trail & Registry (`audit.py` + Tab 4)**:
+   - Additive SQLite table `audit_log` tracking scan ID, salted patient hash, model version, AI grade, confidence status, quality gate pass, clinician action, final grade, and quality override status.
+   - Filterable UI table with 1-click CSV export and audit KPI metrics.
+7. **Privacy, De-identification & Fairness (`privacy.py`)**:
+   - Salted SHA-256 de-identification of patient IDs before audit insertion.
+   - Zero raw retinal imagery stored by default (clinician opt-in checkbox).
+   - Algorithmic fairness subgroup evaluator auditing accuracy and sensitivity across age brackets and gender cohorts.
+8. **Doctor + AI Evaluation & Simulation (`evaluation/evaluate.py` + Tab 5)**:
+   - Evaluates labeled fundus datasets with accuracy, referable sensitivity/specificity, and 5-class confusion matrices.
+   - Monte Carlo comparative reader simulation: **Junior Clinician Alone** vs. **AI Model Alone** vs. **Senior Ophthalmologist Alone** vs. **Doctor + AI Hybrid Triage**.
+
+---
+
+### 🔑 Setting Up Sarvam AI (Optional Online Mode)
+
+NetraScreen runs 100% offline by default. To activate the online Sarvam GenAI co-pilot:
+
+#### On Windows (PowerShell):
+```powershell
+$env:SARVAM_API_KEY="your_sarvam_api_key_here"
+streamlit run streamlit_app.py
+```
+
+#### On Linux / macOS:
+```bash
+export SARVAM_API_KEY="your_sarvam_api_key_here"
+streamlit run streamlit_app.py
+```
+
+#### In Streamlit Cloud:
+Add the key to `.streamlit/secrets.toml` or Streamlit Cloud Settings:
+```toml
+SARVAM_API_KEY = "your_sarvam_api_key_here"
+```
+
+*Note: If no API key is provided, the application will display `AI Explanation: Offline (Local Engine)` and continue operating smoothly with preloaded templates.*
+
+---
+
+### 🧪 Running the Verification & Regression Suite
+
+To verify all 8 challenge features and original model predictions on CPU:
+```bash
+python test_lnt_upgrade.py
+```
+Expected output:
+```text
+======================================================================
+RUNNING L&T TECHNUM AUTOMATED VERIFICATION SUITE
+======================================================================
+[TEST 1] Verifying 5-Grade Model Predictions & Grad-CAM... [PASS]
+[TEST 2] Verifying Quality Gate (Valid vs Blurred vs Dark)... [PASS]
+[TEST 3] Verifying Confidence & Entropy Calculation... [PASS]
+[TEST 4] Verifying Adaptive Modes (Detailed vs Concise)... [PASS]
+[TEST 5] Verifying Sarvam AI Offline Fallback... [PASS]
+[TEST 6] Verifying Doctor Review Actions & Audit Logging... [PASS]
+[TEST 7] Verifying Privacy De-identification... [PASS]
+[TEST 8] Verifying Doctor + AI Simulation... [PASS]
+======================================================================
+ALL TESTS PASSED WITH 100% SUCCESS!
+======================================================================
+```
+
+---
+
 ## ⚠️ Medical & Regulatory Disclaimer
 
 > **IMPORTANT CLINICAL NOTICE**:  
-> NetraScreen is an **assistive screening and epidemiological triage tool** designed to aid frontline community health workers and vision technicians under tele-ophthalmology supervision. **It does not constitute a definitive medical diagnosis.**  
+> NetraScreen is an **assistive screening and epidemiological triage decision-support tool** designed to aid frontline healthcare providers and vision technicians under ophthalmic supervision. **Final diagnostic and therapeutic decisions rest exclusively with the clinician.**  
 > Image quality, optical artefacts, and co-existing ocular pathologies (e.g. cataracts, glaucoma, hypertensive retinopathy) may influence model outputs. **All flagged cases must be clinically confirmed by a licensed ophthalmologist** via dilated slit-lamp biomicroscopy or optical coherence tomography (OCT) prior to therapeutic or surgical intervention.
 
 ---

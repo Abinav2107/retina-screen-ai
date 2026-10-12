@@ -15,6 +15,8 @@ __pycache__/
 .env
 .env.*
 *.env
+.streamlit/secrets.toml
+.streamlit/
 
 # Cache directories
 .cache/
@@ -59,3 +61,6 @@ clinic_patient_registry.csv
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+hf_space_build/
+

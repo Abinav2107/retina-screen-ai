@@ -1,0 +1,35 @@
+# L&T TECHNUM Challenge — One-Page Requirement Mapping Matrix
+**Challenge Track:** Adaptive Medical Scan Analysis and Recommendation System (ML + DL + GenAI)  
+**System:** NetraScreen AI — Clinical Decision Support (CDS) Platform  
+**Compliance Authority:** Final diagnostic and intervention decisions rest exclusively with the clinician.
+
+---
+
+| # | Challenge Requirement | Implementation Module | UI / Integration Surface | Clinical Safety & Fail-Safe Verification |
+|:---:|:---|:---|:---|:---|
+| **1** | **Image Quality Gate**<br>• Variance of Laplacian (blur)<br>• Brightness/exposure bounds<br>• Contrast check<br>• Retinal Field-of-View check<br>• Suppress grade on failure<br>• Recapture advice & reasons<br>• Proceed anyway (flagged) override | [`quality.py`](quality.py)<br>`assess_scan_quality()`<br>`QUALITY_THRESHOLDS` dict | **Tab 2 (Patient Intake):** Quality card pre-check before inference button.<br>**Gradio `app.py`:** Pre-check in `analyse_single_patient()`. | • Blurred scan (`Var: 18.2 < 45.0`) blocked.<br>• Dark scan (`Brightness: 12.0 < 35.0`) blocked.<br>• Doctor override sets `proceeded_despite_quality=True` in audit trail.<br>• 100% OpenCV algorithmic checks without external ML. |
+| **2** | **Confidence & Uncertainty**<br>• Top-1 probability<br>• Margin between top-2 grades<br>• Shannon entropy<br>• High / Moderate / Low status<br>• "Uncertain: specialist review recommended"<br>• Limits of this result note | [`confidence.py`](confidence.py)<br>`compute_uncertainty_metrics()`<br>`LIMITS_OF_RESULT_NOTE` | **Tab 2 (Intake):** 4 metric cards, uncertainty warning banner, and limits caption.<br>**Gradio `app.py`:** Summary card displays entropy & status. | • High: $P_1 \ge 0.85$, $\Delta \ge 0.45$.<br>• Moderate: $P_1 \ge 0.60$, $\Delta \ge 0.25$.<br>• Low / Borderline: Triggers specialist review flag.<br>• Preserves underlying model grade without modification. |
+| **3** | **Adaptive Support Modes**<br>• Detailed vs. Concise selector<br>• Show evidence toggle<br>• Urgency-first adaptation (Grade 3-4 timeline front)<br>• Scan quality adaptation<br>• Template-based offline resilience | [`adaptive.py`](adaptive.py)<br>`format_adaptive_report()`<br>`TIMELINES`<br>`LESION_HINTS` | **Sidebar:** "Support Style" dropdown (`Detailed`/`Concise`) & "Show Model Evidence" checkbox.<br>**Tab 2:** Rendered adaptive assessment block. | • Detailed: Pathological lesions, differential context, next steps.<br>• Concise: Metrics, urgency, timeline.<br>• Grades 3-4 immediately escalate intervention window (3 days / 24-48 hrs).<br>• 100% offline static templates. |
+| **4** | **GenAI Explanation Layer (Sarvam AI)**<br>• Official Sarvam AI API client<br>• Read key from env / `st.secrets`<br>• Strict safety guardrails (no hallucinated lesions, no grade alterations)<br>• Doctor Q&A box<br>• Status badge (Online / Offline)<br>• Graceful offline fallback | [`sarvam_client.py`](sarvam_client.py)<br>`generate_sarvam_explanation()`<br>`get_sarvam_api_key()` | **Sidebar:** Status badge (`🟢 Online` / `⚪ Offline`).<br>**Tab 2:** AI explanation box and *"Ask a question about this result"* expander. | • Strict system prompt prevents diagnostic hallucination.<br>• Offline Fallback: If `SARVAM_API_KEY` is absent or network fails, automatically serves preloaded 6-language templates.<br>• Zero application crash risk. |
+| **5** | **Doctor-in-the-Loop Controls**<br>• Accept action<br>• Correct action (choose grade 0-4 + reason)<br>• Reject action (reason)<br>• Authoritative decisions immutably stored<br>• No silent overwriting | [`review.py`](review.py)<br>`record_clinician_decision()` | **Tab 2:** Authoritative sign-off section with 3 interactive action columns and clinician decision banner. | • Doctor actions logged with mandatory rationale.<br>• Historical records preserved.<br>• Slip reflects final clinician grade when corrected. |
+| **6** | **Compliance Audit Trail**<br>• SQLite table `audit_log`<br>• Logs scan ID, salted hash, model, AI grade, confidence, quality pass, mode, language, doctor action, final grade, reason, override bool<br>• Filterable UI table & CSV export<br>• KPI counts (accepted, corrected, rejected, quality flagged) | [`audit.py`](audit.py)<br>`init_audit_table()`<br>`log_audit_event()`<br>`get_audit_records()`<br>`get_audit_summary()` | **Tab 4 (Audit & Review):** 5 live KPI metric cards, action filter dropdown, searchable table, and 1-click CSV download. | • Additive table creation (`CREATE TABLE IF NOT EXISTS`).<br>• Zero schema changes to original `patients` table.<br>• Tested and verified via regression suite. |
+| **7** | **Privacy, De-ID & Fairness**<br>• Salted SHA-256 patient de-identification<br>• Zero raw image retention default<br>• Sidebar opt-in ("Save scan for review")<br>• Privacy manifesto<br>• Subgroup fairness evaluation | [`privacy.py`](privacy.py)<br>`hash_patient_id()`<br>`PRIVACY_MANIFESTO`<br>`evaluate_subgroup_bias()` | **Sidebar:** Opt-in checkbox & Privacy expander.<br>**Tab 5:** Demographic fairness audit table across age brackets and genders. | • Patient OPD ID irreversibly hashed with system salt.<br>• Volatile memory image processing.<br>• Subgroup report monitors accuracy and referable sensitivity across cohorts. |
+| **8** | **Doctor + AI Evaluation**<br>• Benchmark evaluator on labeled dataset<br>• Accuracy, referable sensitivity & specificity<br>• 5-Class Confusion Matrix<br>• Quality-gate rejection rate<br>• Monte Carlo comparative reader simulation (Doctor alone vs AI alone vs Doctor + AI)<br>• Explicitly labeled as SIMULATION | [`evaluation/evaluate.py`](evaluation/evaluate.py)<br>`evaluate_labeled_dataset()`<br>`run_hybrid_reader_simulation()` | **Tab 5 (Doctor + AI Evaluation):** Comparative performance table, dual Matplotlib bar charts, and 1-click rerun button. | • Junior Alone (81% acc, 85s/case) vs. Senior Alone (96% acc, 135s/case) vs. AI Alone (94% acc, <1s) vs. Hybrid (97.6% acc, 36.5s/case).<br>• Headless `Agg` Matplotlib backend safe for servers.<br>• Prominently labeled as SIMULATION. |
+
+---
+
+### Non-Negotiable Rules Compliance Verification
+
+1. **Rule 1 (No Removal/Breaking):**
+   - EfficientNetB0 inference (`predict.py`), Grad-CAM (`gradcam.py`), 6-language translations (`languages.py`), SQLite registry (`patients` table), and Camp mode batch screening remain 100% operational.
+2. **Rule 2 (Minimal, Marked Edits):**
+   - All edits in `streamlit_app.py` and `app.py` are explicitly tagged `# --- L&T UPGRADE ---` and `# --- END L&T UPGRADE ---`.
+3. **Rule 3 (Additive DB Only):**
+   - New table `audit_log` created with index `idx_audit_time`. Zero modifications to existing tables.
+4. **Rule 4 & 5 (Fail-Safe & Offline CPU):**
+   - Runs 100% locally on standard CPU without dedicated GPU or external cloud dependencies.
+   - Tested with and without `SARVAM_API_KEY`.
+5. **Rule 6 (Project Backup):**
+   - Clean backup created in `C:\Users\Admin\Downloads\dr_screening_backup\` (76 files, 9.79 MB verified).
+6. **Rule 7 (Mandatory Disclaimer):**
+   - *"Decision-support tool. Final decision rests with the clinician."* displayed on all clinical assessment screens.

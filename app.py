@@ -44,6 +44,19 @@ from batch import (
 )
 import database
 
+# --- L&T UPGRADE: Clinical Decision Support & Quality Imports ---
+import quality
+import confidence
+import audit
+import review
+# --- END L&T UPGRADE ---
+
+# --- i18n: Localization Engine ---
+import i18n  # --- i18n ---
+from i18n import t  # --- i18n ---
+# --- end i18n ---
+
+
 
 # ------------------------------------------------------------------
 # HTML Rendering Helpers (Pure English by default, dynamic per chosen language)
@@ -232,6 +245,52 @@ def run_patient_intake_screening(
     clean_htn = str(hypertension).strip() if hypertension else "No"
     clean_diab = str(diabetic_duration).strip() if diabetic_duration else "Unknown"
 
+    # --- L&T UPGRADE: Image Quality Gate Pre-Check ---
+    q_res = quality.assess_scan_quality(pil_image)
+    if not q_res["passed"]:
+        fail_badge = f"""
+        <div style="background-color: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 12px 16px; margin: 6px 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">⚠️</span>
+                <strong style="color: #991b1b; font-size: 14px;">
+                    Poor quality scan: please recapture or send for manual review (Quality: {q_res['quality_score']:.1f}/100)
+                </strong>
+            </div>
+            <ul style="color: #b91c1c; font-size: 12px; margin: 6px 0 0 18px;">
+                {"".join(f"<li>{r}</li>" for r in q_res['reasons'])}
+            </ul>
+        </div>
+        """
+        fail_summary = f"SCAN FLAGGED: Poor image quality ({q_res['quality_score']:.1f}/100). Recapture required."
+        audit.log_audit_event(
+            scan_id=f"SCAN-{clean_id}",
+            patient_id=clean_id,
+            model_version="EfficientNetB0-v1.0-LNT",
+            ai_grade=-1,
+            confidence_status="Low Quality",
+            top1_prob=0.0,
+            quality_pass=False,
+            support_mode="Concise",
+            language=lang_code,
+            doctor_action="REJECT",
+            final_grade=-1,
+            reason="Auto-flagged by Image Quality Gate: " + "; ".join(q_res["reasons"]),
+            proceeded_despite_quality=False,
+        )
+        return (
+            pil_image,
+            fail_badge,
+            fail_summary,
+            "**Poor quality scan detected.** The model cannot reliably grade this image. Please recapture or send for manual specialist review.\n\n*Decision-support tool. Final decision rests with the clinician.*",
+            {},
+            "Image Quality Gate: Failed. Optical recapture recommended.",
+            render_disclaimer_html("Decision-support tool. Final decision rests with the clinician.", title="Clinical Decision Support Disclaimer"),
+            None,
+            None,
+            fail_badge,
+        )
+    # --- END L&T UPGRADE ---
+
     # 1. AI Prediction
     predicted_index, predicted_label, scores = predict(pil_image)
     top_conf = scores[predicted_label] * 100
@@ -260,11 +319,15 @@ def run_patient_intake_screening(
     time_lbl = ui_strings.get("timeline_label", "Recommended Timeline")
     hist_lbl = ui_strings.get("history_label", "Clinical History")
 
+    # --- L&T UPGRADE: Confidence & Uncertainty Diagnostics ---
+    conf_res = confidence.compute_uncertainty_metrics(scores, CLASS_LABELS)
+    # --- END L&T UPGRADE ---
+
     # 4. Summary card in chosen language
     summary_text = (
         f"{p_lbl}: {clean_name} ({clean_id})  •  {eye_lbl}: {clean_eye}\n"
-        f"{stage_lbl}: {patient_msg.severity_name} (Grade {predicted_index})  •  {conf_lbl}: {top_conf:.1f}%\n"
-        f"{triage_lbl}: {patient_msg.urgency}"
+        f"{stage_lbl}: {patient_msg.severity_name} (Grade {predicted_index})  •  {conf_lbl}: {top_conf:.1f}% ({conf_res['confidence_status']})\n"
+        f"{triage_lbl}: {patient_msg.urgency}  •  Entropy: {conf_res['entropy']:.2f}"
     )
 
     # 5. Formatted patient explanation in Markdown
@@ -316,6 +379,24 @@ def run_patient_intake_screening(
         slip_path=slip_path,
     )
 
+    # --- L&T UPGRADE: Compliance Audit Logging ---
+    audit.log_audit_event(
+        scan_id=f"SCAN-{rec_id:04d}",
+        patient_id=clean_id,
+        model_version="EfficientNetB0-v1.0-LNT",
+        ai_grade=predicted_index,
+        confidence_status=conf_res["confidence_status"],
+        top1_prob=conf_res["top1_prob"],
+        quality_pass=True,
+        support_mode="Concise",
+        language=lang_code,
+        doctor_action="ACCEPT",
+        final_grade=predicted_index,
+        reason="Screening registered via clinical intake.",
+        proceeded_despite_quality=False,
+    )
+    # --- END L&T UPGRADE ---
+
     status_alert = f"""
     <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 8px 12px; border-radius: 6px; margin: 6px 0;">
         <span style="color: #15803d; font-weight: 700; font-size: 13px;">
@@ -349,7 +430,10 @@ def run_patient_intake_screening(
         patient_explanation_md,
         scores,
         gradcam_caption,
-        render_disclaimer_html(disclaimer_text, title=disclaimer_title),
+        render_disclaimer_html(
+            f"{disclaimer_text} Decision-support tool. Final decision rests with the clinician.",
+            title=disclaimer_title,
+        ),
         slip_img,
         slip_path,
         status_alert,
@@ -423,14 +507,15 @@ def on_language_change_global(
     ui_strings = lang_dict.get("ui", {})
 
     # Top banner & disclaimer update
-    banner_html = render_rural_banner_html(
-        title=ui_strings.get("rural_banner_title", "Rural Clinic Ready (100% Offline Edge Operation)"),
-        note=lang_dict.get("rural_note", ""),
-    )
-    disclaimer_html = render_disclaimer_html(
-        disclaimer_text=lang_dict.get("disclaimer", MESSAGES["en"]["disclaimer"]),
-        title=ui_strings.get("disclaimer_title", "Medical Screening Disclaimer"),
-    )
+    banner_html = render_rural_banner_html(  # --- i18n ---
+        title=t("sidebar_rural_ready_title", lang=lang_code),  # --- i18n ---
+        note=t("sidebar_rural_ready_desc", lang=lang_code),  # --- i18n ---
+    )  # --- i18n ---
+    disclaimer_html = render_disclaimer_html(  # --- i18n ---
+        disclaimer_text=t("disclaimer_badge_text", lang=lang_code),  # --- i18n ---
+        title=t("disclaimer_badge_title", lang=lang_code),  # --- i18n ---
+    )  # --- i18n ---
+
 
     # If an image is currently loaded, re-run localized summary & slip
     if image is not None:
@@ -530,12 +615,16 @@ if sample_dir.exists():
 # Gradio UI Layout (Clean English by default, dynamic on language selection)
 # ------------------------------------------------------------------
 custom_css = """
+body, input, button, select, textarea, .gradio-container {
+    font-family: 'Nirmala UI', 'Noto Sans', 'Lohit Devanagari', 'Mukti', 'Gautami', 'Latha', 'Segoe UI', Tahoma, sans-serif !important;
+}
 .badge-container { margin: 6px 0; }
 .output-image { border-radius: 8px; overflow: hidden; }
 .dataframe table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dataframe th { background-color: #f8fafc; font-weight: 700; color: #334155; }
 .dataframe td { padding: 8px 10px; }
-"""
+"""  # --- i18n ---
+
 
 with gr.Blocks(title="NetraScreen - Clinical Screening Dashboard", css=custom_css) as demo:
 
